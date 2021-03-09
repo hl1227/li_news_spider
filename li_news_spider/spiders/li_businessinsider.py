@@ -44,7 +44,7 @@ class Businessinsider_Spider(CrawlSpider):
             item['img_src']=''
         # 正文
         try:
-            item['content'] = ''.join(response.xpath("//div[@class='Normal']//text()").extract()).replace('Advertisement','')
+            item['content'] = item['img_src']+' '+''.join(response.xpath("//div[@class='Normal']//text()").extract()).replace('Advertisement','')
         except Exception:
             item['content'] = ''
         # 文本内链接
