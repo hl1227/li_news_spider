@@ -10,7 +10,7 @@ class Businessinsider_Spider(CrawlSpider):
     def __init__(self):
         super(Businessinsider_Spider, self).__init__(name='businessinsider')
         self.page=0
-        self.start_time=time.time()
+    #     self.start_time=time.time()
     rules = (
              Rule(LinkExtractor(allow=r'https://www.businessinsider.in/.*/articleshow/\d+.cms'),callback='parse_item', follow=True),
              Rule(LinkExtractor(allow=r'https://www.businessinsider.in/.*'), follow=True),
@@ -23,7 +23,6 @@ class Businessinsider_Spider(CrawlSpider):
         #item["creat_time"] = time.time()
         #分类
         try:
-            #item['category']=response.url.split('/')[3]
             item['category']=response.xpath("//li[@itemprop='itemListElement'][2]/a//text()").extract_first()
         except Exception:
             item['category']=''
@@ -40,6 +39,8 @@ class Businessinsider_Spider(CrawlSpider):
         #图片
         try:
             item['img_src']='<img src="'+response.xpath("//meta[@property='og:image']/@content").extract_first()+'" >'
+            if 'default' in item['img_src']:
+                item['img_src']='<img src="https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=2274759964,1815655365&fm=26&gp=0.jpg" >'
         except Exception:
             item['img_src']=''
         # 正文
@@ -83,9 +84,8 @@ class Businessinsider_Spider(CrawlSpider):
             #print(time.strftime('%Y.%m.%d-%H:%M:%S'),'第',self.page,'条抓取成功,url:', item['url'],'耗时:',time.time()-response.meta['start_time'],'秒')
             print(time.strftime('%Y.%m.%d-%H:%M:%S'),'第',self.page,'条抓取成功 耗时:',round(time.time()-response.meta['start_time'],2),'秒',response.url,)
             yield item
-
         else:print(time.strftime('%Y.%m.%d-%H:%M:%S'),'******抓取失败:',response.url)
     def close(spider, reason):
-        print('scrapy-arstechnica抓取完成,共抓取:',spider.page,'条数据')
+        print('scrapy-businessinsider抓取完成,共抓取:',spider.page,'条数据')
         ##self.crawler.engine.close_spider(self, "关闭spider")
         #scrapy crawl businessinsider

@@ -6,7 +6,7 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
-import pymysql
+import pymysql,time
 
 
 class LiNewsSpiderPipeline:
@@ -21,10 +21,16 @@ class LiNewsSpiderPipeline:
             charset='utf8')
         self.cur = self.conn.cursor()
     def process_item(self, item, spider):
-        news="insert into Data_Content_665(title,content,author,time,keywords,description,tag,PageUrl,thumbid,category) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-        self.cur.execute(news,(item['title'],item['content'],item['author'],item['release_time'],item['keyword'],item['description'],item['keyword'],item['url'],item['img_src'],item['category']))
-        self.conn.commit()
-        return item
+        find_ex="select id,PageUrl from Data_Content_665 where title= %s "
+        self.cur.execute(find_ex, (item["title"]))
+        try:
+            if not self.cur.fetchone():
+                news="insert into Data_Content_665(title,content,author,time,keywords,description,tag,PageUrl,thumbid,category,create_time) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                self.cur.execute(news,(item['title'],item['content'],item['author'],item['release_time'],item['keyword'],item['description'],item['keyword'],item['url'],item['img_src'],item['category'],time.time()))
+                self.conn.commit()
+                return item
+        except Exception:
+            pass
 
 
     def close_spider(self, spider):
