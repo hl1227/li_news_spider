@@ -23,3 +23,4 @@ class LiNewsSpiderItem(scrapy.Item):
     #creat_time = scrapy.Field()  # 创建时间
     description = scrapy.Field()  # 摘要
     release_time = scrapy.Field()  # 发行时间
+    be_from=scrapy.Field() #来源
