@@ -20,8 +20,6 @@ class Businessinsider_Spider(CrawlSpider):
         item = LiNewsSpiderItem()
         url=response.url
         item['url'] = url
-        #item['status'] = 1
-        #item["creat_time"] = time.time()
         # 标题
         try:
             item['title'] = response.xpath("//meta[@property='og:title']/@content").extract_first()
@@ -37,7 +35,8 @@ class Businessinsider_Spider(CrawlSpider):
         # 摘要
         try:
             item['description'] = response.xpath("//meta[@name='description']/@content").extract_first()
-
+            if item['description'] ==None or item['description']=='abcnews':
+                item['description'] = item['title']
         except Exception:
             item['description'] = item['title']
         # 图片
@@ -50,7 +49,7 @@ class Businessinsider_Spider(CrawlSpider):
             item['img_src'] = ''
         # 正文
         try:
-            item['content'] ='\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.join(response.xpath("//div[@class='Normal']//text()").extract()).replace('Advertisement','').replace('\n','')
+            item['content'] =''.join(response.xpath("//div[@class='Normal']//text()").extract()).replace('Advertisement','')
         except Exception:
             item['content'] = ''
         # 作者
@@ -58,8 +57,10 @@ class Businessinsider_Spider(CrawlSpider):
             item['author'] = response.xpath("//div[@class='byline-cont']//text()").extract_first()
             if item['author'] == None:
                 item['author'] = response.xpath("//a[@data-auth='author']/text()").extract_first()
+            if item['author'] == None:
+                item['author'] = 'POTATO TECHNOLOGY NEWS'
         except Exception:
-            item['author'] = ''
+            item['author'] = 'POTATO TECHNOLOGY NEWS'
         # 发行时间
         try:
             item['release_time'] = response.xpath("//span[contains(text(),'IST')]//text()").extract_first().replace(' IST','')

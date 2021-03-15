@@ -42,7 +42,7 @@ class LiNewsSpiderPipeline:
             if not self.cur.fetchone():
                 img_path=self.img_parse(item['img_src'],item['keyword'])
                 news="insert into Data_Content_665(title,content,author,time,keywords,description,tag,PageUrl,thumbid,category,create_time,be_from) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-                self.cur.execute(news,(item['title'],img_path+'\n'+'&nbsp;'*8+item['content'],item['author'],item['release_time'],item['keyword'],item['description'],item['keyword'],item['url'],img_path,item['category'],time.time(),item['be_from']))
+                self.cur.execute(news,(item['title'],img_path+'\n'+item['content'],item['author'],item['release_time'],item['keyword'],item['description'],item['keyword'],item['url'],img_path,item['category'],time.time(),item['be_from']))
                 #self.conn.commit()
                 return item
         except Exception as e:
