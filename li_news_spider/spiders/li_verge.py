@@ -5,18 +5,18 @@ from ftplib import FTP
 from io import BytesIO
 import time,pymysql,scrapy,hashlib
 
-class Businessinsider_Spider(CrawlSpider):
-    name = 'businessinsider'
-    allowed_domains = ['businessinsider.in']
-    start_urls = ['https://www.businessinsider.in/',]
+class Verge_Spider(CrawlSpider):
+    name = 'verge'
+    allowed_domains = ['theverge.com','vox-cdn.com']
+    start_urls = ['https://www.theverge.com/']
+    table_name = 'Data_Content_667'   #mysql表名
+    ftp_name = 'test'                 #FTP文件名,只要名为:test则为测试!
+    default_category='other'          #默认分类
     # def __init__(self):
-    #     super(Businessinsider_Spider, self).__init__(name='businessinsider')
+    #     super(Verge_Spider, self).__init__(name='verge')
     page=0
-    table_name = 'Data_Content_667'  # mysql表名
-    ftp_name = 'test'  # FTP文件名,只要名为:test则为测试!
-    default_category = ''  # 默认分类
-    rules = (Rule(LinkExtractor(allow=r'https://www.businessinsider.in/.*/articleshow/\d+.cms'),callback='parse_item', follow=True),
-             Rule(LinkExtractor(allow=r'https://www.businessinsider.in/.*'), follow=True),)
+    rules = (Rule(LinkExtractor(allow=r'https://www.theverge.com/\d+/\d+/\d+/\d+/.*'), callback='parse_item', follow=True),
+             Rule(LinkExtractor(allow=r'https://www.theverge.com/.*'),follow=True),)
     # mysql------------------------------------------
     conn = pymysql.Connect(
         host='154.212.112.247',
@@ -33,28 +33,29 @@ class Businessinsider_Spider(CrawlSpider):
     ftp.login(user='img', passwd='W2BpLPnyXbdmWCNd')
     ftp.set_pasv(False)
     ftp.encoding = 'utf-8'
+
     def parse_item(self, response):
         item = LiNewsSpiderItem()
         url=response.url
         item['url'] = url
         # 标题
         try:
-            item['title'] = response.xpath("//meta[@property='og:title']/@content").extract_first()
+            item['title'] = response.xpath("//h1[@class='c-page-title']/text()").extract_first().replace('\n','')
             if item['title'] == None:
                 item['title'] = ''
         except Exception:
             item['title'] = ''
         # 关键字
         try:
-            item['keyword'] = response.xpath("//meta[@name='keywords']/@content").extract_first()
-            if item['keyword'] ==None or item['keyword']=='abcnews' or len(item['keyword'])<1:
+            item['keyword'] = response.xpath("//meta[@name='parsely-tags']/@content").extract_first().replace('verge,front-page,','')
+            if item['keyword'] ==None or item['keyword']=='verge,front-page' or len(item['keyword'])<1:
                 item['keyword'] = item['title']
         except Exception:
             item['keyword'] = item['title']
         # 摘要
         try:
             item['description'] = response.xpath("//meta[@name='description']/@content").extract_first()
-            if item['description'] ==None or item['description']=='abcnews':
+            if item['description'] == None:
                 item['description'] = item['title']
         except Exception:
             item['description'] = item['title']
@@ -68,21 +69,19 @@ class Businessinsider_Spider(CrawlSpider):
             item['img_src'] = ''
         # 正文
         try:
-            item['content'] =''.join(response.xpath("//div[@class='Normal']//text()").extract()).replace('Advertisement','')
+            item['content'] =''.join(response.xpath("//div[@class='c-entry-content ']/p//text()").extract()).replace('.','.\n')
         except Exception:
             item['content'] = ''
         # 作者
         try:
-            item['author'] = response.xpath("//div[@class='byline-cont']//text()").extract_first()
-            if item['author'] == None:
-                item['author'] = response.xpath("//a[@data-auth='author']/text()").extract_first()
+            item['author'] = response.xpath("//meta[@name='parsely-author']/@content").extract_first()
             if item['author'] == None:
                 item['author'] = 'POTATO TECHNOLOGY NEWS'
         except Exception:
             item['author'] = 'POTATO TECHNOLOGY NEWS'
         # 发行时间
         try:
-            item['release_time'] = response.xpath("//span[contains(text(),'IST')]//text()").extract_first().replace(' IST','')
+            item['release_time'] = response.xpath('//time[@class="c-byline__item"]/text()').extract_first().replace('\n','').strip()
         except Exception:
             item['release_time'] = ''
         #分类
@@ -91,14 +90,15 @@ class Businessinsider_Spider(CrawlSpider):
         except Exception:
             item['category']=''
         # 来源
-        item['be_from'] ='www.businessinsider.in'
+        item['be_from'] ='www.theverge.com'
+
         #生成器返回:
         if len(item['title']) >=1 and len(item['content']) >= 50 and item['category'] != '':
-            # -----------入库去重--------------------------------------
+            #-----------入库去重--------------------------------------
             find_ex = "select id,PageUrl from {} where title= %s ".format(self.table_name)
             self.cur.execute(find_ex, (item["title"]))
             if not self.cur.fetchone():
-                # 封面图片
+                #封面图片
                 if item['img_src'] != '':
                     yield scrapy.Request(url=item['img_src'], callback=self.img_parse, meta={'item': item})
                 # else:
@@ -107,7 +107,6 @@ class Businessinsider_Spider(CrawlSpider):
             else:print('**数据重复:',item['url'])
         else:
             print('##数据不匹配:标题长度:',len(item['title']),'文本长度:',len(item['content']),'category:',item['category'],response.url)
-        #else:print(time.strftime('%Y.%m.%d-%H:%M:%S'),'****分类不匹配或者抓取失败****:',response.url)
     def img_parse(self,response):
         item = response.meta['item']
         if 'www.baidu.com' in response.url or response.status >302:
@@ -167,10 +166,12 @@ class Businessinsider_Spider(CrawlSpider):
             return 'Apple'
         else:
             return self.default_category
-    def close(spider, reason):
-        print('scrapy-businessinsider抓取完成,共抓取:',spider.page,'条数据')
+    def close(self, reason):
+        print('scrapy-businessinsider抓取完成,共抓取:',self.page,'条数据')
+        self.conn.close()
+        self.ftp.close()
         ##self.crawler.engine.close_spider(self, "关闭spider")
-        #scrapy crawl businessinsider
+        #scrapy crawl verge
 
 
 

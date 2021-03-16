@@ -20,14 +20,14 @@ NEWSPIDER_MODULE = 'li_news_spider.spiders'
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 64
+CONCURRENT_REQUESTS = 48
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 0.35
+DOWNLOAD_DELAY = 0.6
 # The download delay setting will honor only one of:
-CONCURRENT_REQUESTS_PER_DOMAIN = 64
+CONCURRENT_REQUESTS_PER_DOMAIN =48
 CONCURRENT_REQUESTS_PER_IP = 0
 
 # Disable cookies (enabled by default)
@@ -63,7 +63,7 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'li_news_spider.pipelines.LiNewsSpiderPipeline': 300,   #开启手动入库管道
+    #'li_news_spider.pipelines.LiNewsSpiderPipeline': 300,   #开启手动入库管道
     #'crawlab.pipelines.CrawlabMongoPipeline': 888,          #crawlab入库管道
 }
 
@@ -94,11 +94,11 @@ LOG_LEVEL='WARNING'
 HTTPERROR_ALLOWED_CODES = [403,404,429,500,502,503,504,505]
 
 #增大这个线程池,默认10
-REACTOR_THREADPOOL_MAXSIZE = 20
+# REACTOR_THREADPOOL_MAXSIZE = 20
 #禁止重试
 RETRY_ENABLED = False
 #超时
-DOWNLOAD_TIMEOUT = 15
+DOWNLOAD_TIMEOUT = 60
 #算法方式:
 # DEPTH_PRIORITY = 1
 # SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'

@@ -150,9 +150,6 @@ class LiNewsSpiderDownloaderMiddleware:
         UA = random.choice(UA_list)
         # 设置给request请求头
         request.headers['User-Agent'] = UA
-        # ------------------------------------------
-        request.meta['start_time'] = time.time()
-        # print(request.url,'请求开始:',request.meta['start_time'])
         return None
 
     def process_response(self, request, response, spider):
