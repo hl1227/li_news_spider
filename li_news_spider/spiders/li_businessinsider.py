@@ -12,9 +12,10 @@ class Businessinsider_Spider(CrawlSpider):
     # def __init__(self):
     #     super(Businessinsider_Spider, self).__init__(name='businessinsider')
     page=0
-    table_name = 'Data_Content_667'  # mysql表名
-    ftp_name = 'test'  # FTP文件名,只要名为:test则为测试!
-    default_category = ''  # 默认分类
+    #-默认入库,入FTP,入分类设置---------------------------
+    table_name = 'Data_Content_665'  # mysql表名
+    ftp_name = ''  # FTP文件名,只要名为:test则为测试!
+    default_category = ''  # 默认分类,为空则放弃
     rules = (Rule(LinkExtractor(allow=r'https://www.businessinsider.in/.*/articleshow/\d+.cms'),callback='parse_item', follow=True),
              Rule(LinkExtractor(allow=r'https://www.businessinsider.in/.*'), follow=True),)
     # mysql------------------------------------------

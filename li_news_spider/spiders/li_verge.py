@@ -9,8 +9,9 @@ class Verge_Spider(CrawlSpider):
     name = 'verge'
     allowed_domains = ['theverge.com','vox-cdn.com']
     start_urls = ['https://www.theverge.com/']
-    table_name = 'Data_Content_667'   #mysql表名
-    ftp_name = 'test'                 #FTP文件名,只要名为:test则为测试!
+    #-默认入库,入FTP,入分类设置---------------------------
+    table_name = 'Data_Content_665'   #mysql表名
+    ftp_name = ''                 #FTP文件名,只要名为:test则为测试!
     default_category='other'          #默认分类
     # def __init__(self):
     #     super(Verge_Spider, self).__init__(name='verge')
