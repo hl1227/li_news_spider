@@ -161,4 +161,5 @@ class Thebridge_Spider(CrawlSpider):
         self.ftp.close()
         ##self.crawler.engine.close_spider(self, "关闭spider")
         #scrapy crawl thebridge
+        #####################################
 
