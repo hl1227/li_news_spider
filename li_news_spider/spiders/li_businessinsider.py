@@ -9,13 +9,14 @@ class Businessinsider_Spider(CrawlSpider):
     name = 'businessinsider'
     allowed_domains = ['businessinsider.in']
     start_urls = ['https://www.businessinsider.in/',]
-    # def __init__(self):
-    #     super(Businessinsider_Spider, self).__init__(name='businessinsider')
+    start_time=time.time()
     page=0
-    #-默认入库,入FTP,入分类设置---------------------------
+    #-默认入库,入FTP,入分类设置,更新时长---------------------------
     table_name = 'Data_Content_665'  # mysql表名
     ftp_name = ''  # FTP文件名,只要名为:test则为测试!
     default_category = ''  # 默认分类,为空则放弃
+    up_time = 600          # 更新 秒
+    # --------------------------------------------------------
     rules = (Rule(LinkExtractor(allow=r'https://www.businessinsider.in/.*/articleshow/\d+.cms'),callback='parse_item', follow=True),
              Rule(LinkExtractor(allow=r'https://www.businessinsider.in/.*'), follow=True),)
     # mysql------------------------------------------
@@ -63,10 +64,10 @@ class Businessinsider_Spider(CrawlSpider):
         try:
             img_url=response.xpath("//meta[@property='og:image']/@content").extract_first()
             if 'default' in img_url or img_url == None:
-                item['img_src'] = ''
+                item['img_src'] = 'https://www.baidu.com/'
             else:item['img_src']=img_url
         except Exception:
-            item['img_src'] = ''
+            item['img_src'] = 'https://www.baidu.com/'
         # 正文
         try:
             item['content'] =''.join(response.xpath("//div[@class='Normal']//text()").extract()).replace('Advertisement','')
@@ -100,8 +101,8 @@ class Businessinsider_Spider(CrawlSpider):
             self.cur.execute(find_ex, (item["title"]))
             if not self.cur.fetchone():
                 # 封面图片
-                if item['img_src'] != '':
-                    yield scrapy.Request(url=item['img_src'], callback=self.img_parse, meta={'item': item})
+                #if item['img_src'] != '':
+                yield scrapy.Request(url=item['img_src'], callback=self.img_parse, meta={'item': item},dont_filter=True)
                 # else:
                 #     #self.img_parse(response=scrapy.http.HtmlResponse(url='',meta={'item':item},body=))
                 #     yield scrapy.Request(url='https://www.baidu.com/', callback=self.img_parse, meta={'item': item},dont_filter=True)
@@ -141,7 +142,9 @@ class Businessinsider_Spider(CrawlSpider):
         self.cur.execute(news, (item['title'], img_path + '\n' + item['content'], item['author'], item['release_time'], item['keyword'],item['description'], item['keyword'], item['url'], img_path, item['category'], time.time(),item['be_from']))
         self.page += 1
         print(time.strftime('%Y.%m.%d-%H:%M:%S'), '第', self.page, '条抓取成功:',item['url'])
-
+        # 后续更新:启动10分钟后关闭
+        if time.time() - self.start_time >= self.up_time:
+            self.crawler.engine.close_spider(self, "更新10分钟完成!!")
     #分类区分
     def cate(self,item_txt):
         if ' network ' in item_txt or ' technology ' in item_txt or ' download ' in item_txt or ' Samsung ' in item_txt or ' PC ' in item_txt or ' Technology 'in item_txt or ' Internet ' in item_txt or ' camera 'in item_txt or ' TECH ' in item_txt :
@@ -168,8 +171,8 @@ class Businessinsider_Spider(CrawlSpider):
             return 'Apple'
         else:
             return self.default_category
-    def close(spider, reason):
-        print('scrapy-businessinsider抓取完成,共抓取:',spider.page,'条数据')
+    def close(self, reason):
+        print(reason, '共抓取:',self.page,'条数据')
         ##self.crawler.engine.close_spider(self, "关闭spider")
         #scrapy crawl businessinsider
 

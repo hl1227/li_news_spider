@@ -9,12 +9,13 @@ class Verge_Spider(CrawlSpider):
     name = 'verge'
     allowed_domains = ['theverge.com','vox-cdn.com']
     start_urls = ['https://www.theverge.com/']
-    #-默认入库,入FTP,入分类设置---------------------------
+    #-默认入库,入FTP,入分类设置,更新时长---------------------------
     table_name = 'Data_Content_665'   #mysql表名
     ftp_name = ''                 #FTP文件名,只要名为:test则为测试!
     default_category='other'          #默认分类
-    # def __init__(self):
-    #     super(Verge_Spider, self).__init__(name='verge')
+    up_time = 600                   #更新 秒
+    #--------------------------------------------------------
+    start_time=time.time()
     page=0
     rules = (Rule(LinkExtractor(allow=r'https://www.theverge.com/\d+/\d+/\d+/\d+/.*'), callback='parse_item', follow=True),
              Rule(LinkExtractor(allow=r'https://www.theverge.com/.*'),follow=True),)
@@ -64,10 +65,10 @@ class Verge_Spider(CrawlSpider):
         try:
             img_url=response.xpath("//meta[@property='og:image']/@content").extract_first()
             if 'default' in img_url or img_url == None:
-                item['img_src'] = ''
+                item['img_src'] = 'https://www.baidu.com/'
             else:item['img_src']=img_url
         except Exception:
-            item['img_src'] = ''
+            item['img_src'] = 'https://www.baidu.com/'
         # 正文
         try:
             item['content'] =''.join(response.xpath("//div[@class='c-entry-content ']/p//text()").extract()).replace('.','.\n')
@@ -100,8 +101,8 @@ class Verge_Spider(CrawlSpider):
             self.cur.execute(find_ex, (item["title"]))
             if not self.cur.fetchone():
                 #封面图片
-                if item['img_src'] != '':
-                    yield scrapy.Request(url=item['img_src'], callback=self.img_parse, meta={'item': item})
+                #if item['img_src'] != '':
+                yield scrapy.Request(url=item['img_src'], callback=self.img_parse, meta={'item': item},dont_filter=True)
                 # else:
                 #     #self.img_parse(response=scrapy.http.HtmlResponse(url='',meta={'item':item},body=))
                 #     yield scrapy.Request(url='https://www.baidu.com/', callback=self.img_parse, meta={'item': item},dont_filter=True)
@@ -140,6 +141,9 @@ class Verge_Spider(CrawlSpider):
         self.cur.execute(news, (item['title'], img_path + '\n' + item['content'], item['author'], item['release_time'], item['keyword'],item['description'], item['keyword'], item['url'], img_path, item['category'], time.time(),item['be_from']))
         self.page += 1
         print(time.strftime('%Y.%m.%d-%H:%M:%S'), '第', self.page, '条抓取成功:',item['url'])
+        #后续更新:启动10分钟后关闭
+        if time.time()-self.start_time >=self.up_time:
+            self.crawler.engine.close_spider(self,"更新10分钟完成!!")
 
     #分类区分
     def cate(self,item_txt):
@@ -168,25 +172,9 @@ class Verge_Spider(CrawlSpider):
         else:
             return self.default_category
     def close(self, reason):
-        print('scrapy-businessinsider抓取完成,共抓取:',self.page,'条数据')
+        print(reason,'共抓取:',self.page,'条数据')
         self.conn.close()
         self.ftp.close()
         ##self.crawler.engine.close_spider(self, "关闭spider")
         #scrapy crawl verge
 
-
-
-        # 文本内链接
-        # try:
-        #     txt_link_list = []
-        #     label_a=response.xpath("//div[@class='Normal']//a")
-        #     for a in label_a:
-        #         txt=a.xpath("./text()").extract_first()
-        #         if txt != None:
-        #             txt_link = {}
-        #             txt_link['txt']=txt
-        #             txt_link['link']=a.xpath("./@href").extract_first()
-        #             txt_link_list.append(txt_link)
-        #     item['txt_link']=txt_link_list
-        # except Exception:
-        #     item['txt_link']=''

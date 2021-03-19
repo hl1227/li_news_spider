@@ -3,7 +3,7 @@ from scrapy.spiders import CrawlSpider, Rule
 from ..items import LiNewsSpiderItem
 from ftplib import FTP
 from io import BytesIO
-import time,pymysql,scrapy,hashlib
+import time,pymysql,scrapy,hashlib,emoji
 
 class Thebridge_Spider(CrawlSpider):
     name = 'thebridge'
@@ -24,7 +24,7 @@ class Thebridge_Spider(CrawlSpider):
         db='test',
         user="root",
         passwd='itfkgsbxf3nyw6s1',
-        charset='utf8')
+        charset='utf8mb4')
     cur = conn.cursor()
     # ftp---------------------------------------------
     ftp = FTP()
@@ -69,7 +69,7 @@ class Thebridge_Spider(CrawlSpider):
             item['img_src'] = 'https://www.baidu.com/'
         # 正文
         try:
-            item['content'] ='\n'.join(response.xpath("//div[@class='bd-m-details-contentbox details-content-story']//text()").extract())
+            item['content'] =emoji.demojize('\n'.join(response.xpath("//div[@class='bd-m-details-contentbox details-content-story']//text()").extract()), delimiters=("", ""))
         except Exception:
             item['content'] = ''
         # 作者

@@ -94,12 +94,15 @@ LOG_LEVEL='WARNING'
 HTTPERROR_ALLOWED_CODES = [403,404,429,500,502,503,504,505]
 
 #增大这个线程池,默认10
-# REACTOR_THREADPOOL_MAXSIZE = 20
+REACTOR_THREADPOOL_MAXSIZE = 20
 #禁止重试
 RETRY_ENABLED = False
+#重试3次
+#RETRY_TIMES = 3
 #超时
-DOWNLOAD_TIMEOUT = 60
+DOWNLOAD_TIMEOUT = 120
 #算法方式:
-# DEPTH_PRIORITY = 1
-# SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
-# SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
+#DEPTH_LIMIT = 5    #最大深度值
+DEPTH_PRIORITY = 1 #0表示深度优先,1表示广度优先
+SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
+SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'

@@ -4,7 +4,8 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
-
+import scrapy
+from twisted.internet.error import ConnectionRefusedError, TimeoutError
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 
@@ -169,7 +170,9 @@ class LiNewsSpiderDownloaderMiddleware:
         # - return None: continue processing this exception
         # - return a Response object: stops process_exception() chain
         # - return a Request object: stops process_exception() chain
-        pass
+        # 如果超时,则返回一个res
+        if isinstance(exception, (TimeoutError)):
+            return scrapy.http.Response(url='https://www.baidu.com/',status=500)
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
