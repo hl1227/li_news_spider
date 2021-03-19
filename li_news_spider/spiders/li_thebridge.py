@@ -89,7 +89,7 @@ class Thebridge_Spider(CrawlSpider):
             cate = response.xpath("//ul[@class='bd-breadcrumbul-flex']/li[2]//text()").extract_first().strip()
             item['category']=self.cate(item_txt=cate)
         except Exception:
-            item['category']=''
+            item['category']=self.default_category
         #来源
         item['be_from'] ='thebridge.in'
         #
