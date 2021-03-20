@@ -9,14 +9,16 @@ class Verge_Spider(CrawlSpider):
     name = 'verge'
     allowed_domains = ['theverge.com','vox-cdn.com']
     start_urls = ['https://www.theverge.com/']
+    start_time = time.time()
+    page = 0
+    custom_settings = {'DEPTH_PRIORITY': 1, #0表示深度优先,1表示广度优先
+                       'DEPTH_LIMIT' : 5 }   #最大深度值
     #-默认入库,入FTP,入分类设置,更新时长---------------------------
     table_name = 'Data_Content_665'   #mysql表名
     ftp_name = ''                 #FTP文件名,只要名为:test则为测试!
     default_category='other'          #默认分类
     up_time = 600                   #更新 秒
     #--------------------------------------------------------
-    start_time=time.time()
-    page=0
     rules = (Rule(LinkExtractor(allow=r'https://www.theverge.com/\d+/\d+/\d+/\d+/.*'), callback='parse_item', follow=True),
              Rule(LinkExtractor(allow=r'https://www.theverge.com/.*'),follow=True),)
     # mysql------------------------------------------

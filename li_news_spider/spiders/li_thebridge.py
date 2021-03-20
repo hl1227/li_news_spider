@@ -9,11 +9,12 @@ class Thebridge_Spider(CrawlSpider):
     name = 'thebridge'
     allowed_domains = ['thebridge.in','baidu.com']
     start_urls = ['https://thebridge.in/']
+    page = 0
+    custom_settings = {'DEPTH_PRIORITY': 0}  # 0表示深度优先,1表示广度优先}
     #-默认入库,入FTP,入分类设置---------------------------
     table_name = 'Data_Content_668'   #mysql表名
     ftp_name = ''                 #FTP文件名,只要名为:test则为测试!
     default_category='other'          #默认分类
-    page=0
     rules = (Rule(LinkExtractor(allow=r'https://thebridge.in/.*/.*-.*-.*-.*-.*-.*'), callback='parse_item', follow=True),
              Rule(LinkExtractor(allow=r'https://thebridge.in/.*'),follow=True),)
     # mysql------------------------------------------
@@ -32,7 +33,6 @@ class Thebridge_Spider(CrawlSpider):
     ftp.login(user='img', passwd='W2BpLPnyXbdmWCNd')
     ftp.set_pasv(False)
     ftp.encoding = 'utf-8'
-
     def parse_item(self, response):
         item = LiNewsSpiderItem()
         url=response.url
