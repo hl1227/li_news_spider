@@ -8,15 +8,25 @@ import time,pymysql,scrapy,hashlib,emoji
 class Thebridge_Spider(CrawlSpider):
     name = 'thebridge'
     allowed_domains = ['thebridge.in','baidu.com']
-    start_urls = ['https://thebridge.in/']
+    start_urls = ['https://thebridge.in/latest/','https://thebridge.in/']
     page = 0
-    custom_settings = {'DEPTH_PRIORITY': 0}  # 0表示深度优先,1表示广度优先}
+    # 更新设置--------------------------------------------------
+    start_time = time.time()
+    up_time = 600  # 更新 秒
+    custom_settings = {
+        # 设置爬取算法模式
+        'SCHEDULER_DISK_QUEUE': 'scrapy.squeues.PickleFifoDiskQueue',
+        'SCHEDULER_MEMORY_QUEUE': 'scrapy.squeues.FifoMemoryQueue',
+        'DEPTH_PRIORITY': 1,  # 0表示深度优先,1表示广度优先
+        'DEPTH_LIMIT': 5}  # 最大深度值
     #-默认入库,入FTP,入分类设置---------------------------
     table_name = 'Data_Content_668'   #mysql表名
     ftp_name = ''                 #FTP文件名,只要名为:test则为测试!
     default_category='other'          #默认分类
     rules = (Rule(LinkExtractor(allow=r'https://thebridge.in/.*/.*-.*-.*-.*-.*-.*'), callback='parse_item', follow=True),
-             Rule(LinkExtractor(allow=r'https://thebridge.in/.*'),follow=True),)
+             Rule(LinkExtractor(allow=r'https://thebridge.in/latest/.*'), follow=True),
+             Rule(LinkExtractor(allow=r'https://thebridge.in/.*'),follow=False)
+             )
     # mysql------------------------------------------
     conn = pymysql.Connect(
         host='154.212.112.247',
@@ -34,6 +44,9 @@ class Thebridge_Spider(CrawlSpider):
     ftp.set_pasv(False)
     ftp.encoding = 'utf-8'
     def parse_item(self, response):
+        # 后续更新:启动10分钟后关闭
+        if time.time() - self.start_time >= self.up_time:
+            self.crawler.engine.close_spider(self, "更新10分钟完成!!")
         item = LiNewsSpiderItem()
         url=response.url
         item['url'] = url
@@ -140,7 +153,6 @@ class Thebridge_Spider(CrawlSpider):
         self.cur.execute(news, (item['title'], img_path + '\n' + item['content'], item['author'], item['release_time'], item['keyword'],item['description'], item['keyword'], item['url'], img_path, item['category'], time.time(),item['be_from']))
         self.page += 1
         print(time.strftime('%Y.%m.%d-%H:%M:%S'), '第', self.page, '条抓取成功:',item['url'])
-
     #分类区分
     def cate(self,item_txt):
         if 'Football' in item_txt:
@@ -156,10 +168,9 @@ class Thebridge_Spider(CrawlSpider):
         else:
             return self.default_category
     def close(self, reason):
-        print('scrapy-businessinsider抓取完成,共抓取:',self.page,'条数据')
+        print(reason,'共抓取:',self.page,'条数据')
         self.conn.close()
         self.ftp.close()
         ##self.crawler.engine.close_spider(self, "关闭spider")
         #scrapy crawl thebridge
-        #####################################
 

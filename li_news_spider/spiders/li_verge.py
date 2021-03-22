@@ -9,15 +9,20 @@ class Verge_Spider(CrawlSpider):
     name = 'verge'
     allowed_domains = ['theverge.com','vox-cdn.com']
     start_urls = ['https://www.theverge.com/']
-    start_time = time.time()
     page = 0
-    custom_settings = {'DEPTH_PRIORITY': 1, #0表示深度优先,1表示广度优先
+    #更新设置--------------------------------------------------
+    start_time = time.time()
+    up_time = 600  # 更新 秒
+    custom_settings = {
+                       #设置爬取算法模式
+                       'SCHEDULER_DISK_QUEUE' : 'scrapy.squeues.PickleFifoDiskQueue',
+                       'SCHEDULER_MEMORY_QUEUE' : 'scrapy.squeues.FifoMemoryQueue',
+                       'DEPTH_PRIORITY': 1, #0表示深度优先,1表示广度优先
                        'DEPTH_LIMIT' : 5 }   #最大深度值
     #-默认入库,入FTP,入分类设置,更新时长---------------------------
     table_name = 'Data_Content_665'   #mysql表名
     ftp_name = ''                 #FTP文件名,只要名为:test则为测试!
     default_category='other'          #默认分类
-    up_time = 600                   #更新 秒
     #--------------------------------------------------------
     rules = (Rule(LinkExtractor(allow=r'https://www.theverge.com/\d+/\d+/\d+/\d+/.*'), callback='parse_item', follow=True),
              Rule(LinkExtractor(allow=r'https://www.theverge.com/.*'),follow=True),)
@@ -39,6 +44,9 @@ class Verge_Spider(CrawlSpider):
     ftp.encoding = 'utf-8'
 
     def parse_item(self, response):
+        # 后续更新:启动10分钟后关闭
+        if time.time() - self.start_time >= self.up_time:
+            self.crawler.engine.close_spider(self, "更新10分钟完成!!")
         item = LiNewsSpiderItem()
         url=response.url
         item['url'] = url
@@ -143,9 +151,7 @@ class Verge_Spider(CrawlSpider):
         self.cur.execute(news, (item['title'], img_path + '\n' + item['content'], item['author'], item['release_time'], item['keyword'],item['description'], item['keyword'], item['url'], img_path, item['category'], time.time(),item['be_from']))
         self.page += 1
         print(time.strftime('%Y.%m.%d-%H:%M:%S'), '第', self.page, '条抓取成功:',item['url'])
-        #后续更新:启动10分钟后关闭
-        if time.time()-self.start_time >=self.up_time:
-            self.crawler.engine.close_spider(self,"更新10分钟完成!!")
+
 
     #分类区分
     def cate(self,item_txt):

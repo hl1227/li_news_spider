@@ -8,19 +8,25 @@ import time,pymysql,scrapy,hashlib
 class Businessinsider_Spider(CrawlSpider):
     name = 'businessinsider'
     allowed_domains = ['businessinsider.in']
-    start_urls = ['https://www.businessinsider.in/',]
-    start_time=time.time()
+    start_urls = ['https://www.businessinsider.in/latest','https://www.businessinsider.in/']
     page=0
-    custom_settings = {'DEPTH_PRIORITY': 1,  # 0表示深度优先,1表示广度优先
-                       'DEPTH_LIMIT': 5}  # 最大深度值
+    # 更新设置--------------------------------------------------
+    start_time = time.time()
+    up_time = 600  # 更新 秒
+    custom_settings = {
+        # 设置爬取算法模式
+        'SCHEDULER_DISK_QUEUE': 'scrapy.squeues.PickleFifoDiskQueue',
+        'SCHEDULER_MEMORY_QUEUE': 'scrapy.squeues.FifoMemoryQueue',
+        'DEPTH_PRIORITY': 1,  # 0表示深度优先,1表示广度优先
+        'DEPTH_LIMIT': 5}  # 最大深度值
     #-默认入库,入FTP,入分类设置,更新时长---------------------------
     table_name = 'Data_Content_665'  # mysql表名
     ftp_name = ''  # FTP文件名,只要名为:test则为测试!
     default_category = ''  # 默认分类,为空则放弃
-    up_time = 600          # 更新 秒
     # --------------------------------------------------------
     rules = (Rule(LinkExtractor(allow=r'https://www.businessinsider.in/.*/articleshow/\d+.cms'),callback='parse_item', follow=True),
-             Rule(LinkExtractor(allow=r'https://www.businessinsider.in/.*'), follow=True),)
+             Rule(LinkExtractor(allow=r'https://www.businessinsider.in/.*'), follow=False),
+             Rule(LinkExtractor(allow=r'https://www.businessinsider.in/latest.*'), follow=True))
     # mysql------------------------------------------
     conn = pymysql.Connect(
         host='154.212.112.247',
@@ -174,23 +180,9 @@ class Businessinsider_Spider(CrawlSpider):
         else:
             return self.default_category
     def close(self, reason):
-        print(reason, '共抓取:',self.page,'条数据')
+        print(reason,'共抓取:',self.page,'条数据')
+        self.conn.close()
+        self.ftp.close()
         ##self.crawler.engine.close_spider(self, "关闭spider")
         #scrapy crawl businessinsider
 
-
-
-        # 文本内链接
-        # try:
-        #     txt_link_list = []
-        #     label_a=response.xpath("//div[@class='Normal']//a")
-        #     for a in label_a:
-        #         txt=a.xpath("./text()").extract_first()
-        #         if txt != None:
-        #             txt_link = {}
-        #             txt_link['txt']=txt
-        #             txt_link['link']=a.xpath("./@href").extract_first()
-        #             txt_link_list.append(txt_link)
-        #     item['txt_link']=txt_link_list
-        # except Exception:
-        #     item['txt_link']=''

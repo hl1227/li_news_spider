@@ -103,6 +103,6 @@ RETRY_ENABLED = False
 DOWNLOAD_TIMEOUT = 120
 #算法方式:
 #DEPTH_LIMIT = 5    #最大深度值
-DEPTH_PRIORITY = 1 #0表示深度优先,1表示广度优先
-SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
-SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
+# DEPTH_PRIORITY = 1 #0表示深度优先,1表示广度优先
+# SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
+# SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
