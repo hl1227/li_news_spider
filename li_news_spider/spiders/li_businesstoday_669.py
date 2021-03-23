@@ -20,8 +20,7 @@ class Businesstoday_Spider(CrawlSpider):
     #     'DEPTH_PRIORITY': 1,  # 0表示深度优先,1表示广度优先
     #     'DEPTH_LIMIT': 5}  # 最大深度值
     #-默认入库,入FTP,入分类设置---------------------------
-    table_name = 'Data_Content_667'   #mysql表名
-    ftp_name = 'test'                 #FTP文件名,只要名为:test则为测试!
+    table_name = 'Data_Content_669'   #mysql表名
     default_category='other'          #默认分类
     rules = (Rule(LinkExtractor(allow=r'https://www.businesstoday.in/.*/.*-.*-.*-.*-.*-.*/story/.*'), callback='parse_item', follow=True),
              #Rule(LinkExtractor(allow=r'https://www.businesstoday.in/latest/.*'), follow=True),
@@ -37,12 +36,7 @@ class Businesstoday_Spider(CrawlSpider):
         passwd='itfkgsbxf3nyw6s1',
         charset='utf8mb4')
     cur = conn.cursor()
-    # ftp---------------------------------------------
-    # ftp = FTP()
-    # ftp.connect('154.86.175.226', 21)
-    # ftp.login(user='img', passwd='W2BpLPnyXbdmWCNd')
-    # ftp.set_pasv(False)
-    # ftp.encoding = 'utf-8'
+
     def parse_item(self, response):
         # 后续更新:启动10分钟后关闭
         # if time.time() - self.start_time >= self.up_time:
@@ -119,47 +113,10 @@ class Businesstoday_Spider(CrawlSpider):
                 self.cur.execute(news, (item['title'], item['img_src'] + '\n' + item['content'], item['author'], item['release_time'], item['keyword'],item['description'], item['keyword'], item['url'], item['img_src'], item['category'], time.time(),item['be_from']))
                 self.page += 1
                 print(time.strftime('%Y.%m.%d-%H:%M:%S'), '第', self.page, '条抓取成功:',item['category'], item['url'])
-                #封面图片
-                # if item['img_src'] != '':
-                # yield scrapy.Request(url=item['img_src'], callback=self.img_parse, meta={'item': item},dont_filter=True)
-                # else:
-                #     #self.img_parse(response=scrapy.http.HtmlResponse(url='',meta={'item':item},body=))
-                #     yield scrapy.Request(url='https://www.baidu.com/', callback=self.img_parse, meta={'item': item},dont_filter=True)
             else:print('**数据重复:',item['url'])
         else:
             print('##数据不匹配:标题长度:',len(item['title']),'文本长度:',len(item['content']),'category:',item['category'],response.url)
-    # def img_parse(self,response):
-    #     item = response.meta['item']
-    #     if 'www.baidu.com' in response.url or response.status >=302:
-    #         img_path='<img src="https://img.ksyoume.cn/img_upload/b45c9f4afad48af33b47a52b08ac5c85.jpg" alt="{}" />'.format(item['keyword'])
-    #     else:
-    #         if self.ftp_name != 'test':
-    #             time_name = time.strftime("%Y-%m-%d", time.localtime(time.time())).replace('-', '')
-    #             try:self.ftp.mkd(time_name)
-    #             except Exception:pass
-    #         else:
-    #             time_name ='test'
-    #         m = hashlib.md5()
-    #         m.update(response.url.encode('utf-8'))
-    #         base_txtname_md5 = m.hexdigest() + '.jpg'
-    #         ftp_path = time_name + '/' + base_txtname_md5
-    #         try:
-    #             fp = BytesIO(response.body)
-    #             self.ftp.storbinary(cmd="STOR %s" % ftp_path,fp=fp )  #上传文件
-    #             img_path= '<img src="https://img.ksyoume.cn/img_upload/' + ftp_path + '" alt="{}" />'.format(item['keyword'])
-    #         except Exception as e:
-    #             img_path = '<img src="https://img.ksyoume.cn/img_upload/b45c9f4afad48af33b47a52b08ac5c85.jpg" alt="{}" />'.format(item['keyword'])
-    #             print(item['url'],'!!!图片上传失败:',e)
-    #             self.ftp.close()
-    #             time.sleep(2)
-    #             self.ftp.connect('154.86.175.226', 21)
-    #             self.ftp.login(user='img', passwd='W2BpLPnyXbdmWCNd')
-    #             self.ftp.set_pasv(False)
-    #             self.ftp.encoding = 'utf-8'
-    #     news = "insert into {}(title,content,author,time,keywords,description,tag,PageUrl,thumbid,category,create_time,be_from) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)".format(self.table_name)
-    #     self.cur.execute(news, (item['title'], img_path + '\n' + item['content'], item['author'], item['release_time'], item['keyword'],item['description'], item['keyword'], item['url'], img_path, item['category'], time.time(),item['be_from']))
-    #     self.page += 1
-    #     print(time.strftime('%Y.%m.%d-%H:%M:%S'), '第', self.page, '条抓取成功:','图片获取:',time.time()-item['img_time'],'秒',item['url'])
+
     #分类区分
     def cate(self,item_txt):
         if 'Economy' in item_txt:
@@ -175,7 +132,6 @@ class Businesstoday_Spider(CrawlSpider):
     def close(self, reason):
         print(reason,'共抓取:',self.page,'条数据')
         self.conn.close()
-        #self.ftp.close()
         ##self.crawler.engine.close_spider(self, "关闭spider")
         #scrapy crawl businesstoday
 

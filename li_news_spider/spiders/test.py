@@ -9,12 +9,10 @@ class TestSpider(scrapy.Spider):
     start_urls = []
     for page in range(1, 1000):
         start_urls.append('https://httpbin.org/anything/{}'.format(page))
-
     def parse(self, response):
         print(response.text[-100:-1])
         print('='*40)
         self.page+=1
-
     def close(spider, reason):
         print('scrapy-arstechnica抓取完成,共抓取:',spider.page,'条数据')
 
