@@ -136,7 +136,7 @@ class Businessinsider_Spider(CrawlSpider):
             try:
                 fp = BytesIO(response.body)
                 self.ftp.storbinary(cmd="STOR %s" % ftp_path,fp=fp )  #上传文件
-                img_path= '<img src="https://img.ksyoume.cn/img_upload/' + ftp_path + ' alt="{}" />'.format(item['keyword'])
+                img_path= '<img src="https://img.ksyoume.cn/img_upload/' + ftp_path + '" alt="{}" />'.format(item['keyword'])
             except Exception as e:
                 img_path = '<img src="https://img.ksyoume.cn/img_upload/95e3325e00471c3a0705d42e406d69a3.jpg" alt="" />'
                 print(item['url'],'!!!图片上传失败:',e)
