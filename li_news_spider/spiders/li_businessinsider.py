@@ -58,9 +58,9 @@ class Businessinsider_Spider(CrawlSpider):
         try:
             item['keyword'] = response.xpath("//meta[@name='keywords']/@content").extract_first()
             if item['keyword'] ==None or item['keyword']=='abcnews' or len(item['keyword'])<1:
-                item['keyword'] = item['title']
+                item['keyword'] = item['title'].replace(' ',',')
         except Exception:
-            item['keyword'] = item['title']
+            item['keyword'] = item['title'].replace(' ',',')
         # 摘要
         try:
             item['description'] = response.xpath("//meta[@name='description']/@content").extract_first()
@@ -121,7 +121,7 @@ class Businessinsider_Spider(CrawlSpider):
     def img_parse(self,response):
         item = response.meta['item']
         if 'www.baidu.com' in response.url or response.status >302:
-            img_path='<img src="https://img.ksyoume.cn/img_upload/95e3325e00471c3a0705d42e406d69a3.jpg" alt="" />'
+            img_path='<img src="https://img.ksyoume.cn/img_upload/95e3325e00471c3a0705d42e406d69a3.jpg" alt="{}" />'.format(item['keyword'])
         else:
             if self.ftp_name != 'test':
                 time_name = time.strftime("%Y-%m-%d", time.localtime(time.time())).replace('-', '')
@@ -138,7 +138,7 @@ class Businessinsider_Spider(CrawlSpider):
                 self.ftp.storbinary(cmd="STOR %s" % ftp_path,fp=fp )  #上传文件
                 img_path= '<img src="https://img.ksyoume.cn/img_upload/' + ftp_path + '" alt="{}" />'.format(item['keyword'])
             except Exception as e:
-                img_path = '<img src="https://img.ksyoume.cn/img_upload/95e3325e00471c3a0705d42e406d69a3.jpg" alt="" />'
+                img_path = '<img src="https://img.ksyoume.cn/img_upload/95e3325e00471c3a0705d42e406d69a3.jpg" alt="{}" />'.format(item['keyword'])
                 print(item['url'],'!!!图片上传失败:',e)
                 self.ftp.close()
                 time.sleep(2)

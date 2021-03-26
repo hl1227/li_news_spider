@@ -63,7 +63,7 @@ class Thebridge_Spider(CrawlSpider):
             if item['keyword'] ==None or len(item['keyword'])<1:
                 item['keyword'] = item['title'].replace(' ',',')
         except Exception:
-            item['keyword'] = item['title']
+            item['keyword'] = item['title'].replace(' ',',')
         # 摘要
         try:
             item['description'] = response.xpath("//meta[@name='description']/@content").extract_first()
