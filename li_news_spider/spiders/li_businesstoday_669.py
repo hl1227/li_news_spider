@@ -11,14 +11,14 @@ class Businesstoday_Spider(CrawlSpider):
     start_urls = ['https://www.businesstoday.in/']
     page = 0
     # 更新设置--------------------------------------------------
-    # start_time = time.time()
-    # up_time = 600  # 更新 秒
-    # custom_settings = {
-    #     # 设置爬取算法模式
-    #     'SCHEDULER_DISK_QUEUE': 'scrapy.squeues.PickleFifoDiskQueue',
-    #     'SCHEDULER_MEMORY_QUEUE': 'scrapy.squeues.FifoMemoryQueue',
-    #     'DEPTH_PRIORITY': 1,  # 0表示深度优先,1表示广度优先
-    #     'DEPTH_LIMIT': 5}  # 最大深度值
+    start_time = time.time()
+    up_time = 600  # 更新 秒
+    custom_settings = {
+        # 设置爬取算法模式
+        'SCHEDULER_DISK_QUEUE': 'scrapy.squeues.PickleFifoDiskQueue',
+        'SCHEDULER_MEMORY_QUEUE': 'scrapy.squeues.FifoMemoryQueue',
+        'DEPTH_PRIORITY': 1,  # 0表示深度优先,1表示广度优先
+        'DEPTH_LIMIT': 5}  # 最大深度值
     #-默认入库,入FTP,入分类设置---------------------------
     table_name = 'Data_Content_669'   #mysql表名
     default_category='other'          #默认分类
@@ -38,9 +38,9 @@ class Businesstoday_Spider(CrawlSpider):
     cur = conn.cursor()
 
     def parse_item(self, response):
-        # 后续更新:启动10分钟后关闭
-        # if time.time() - self.start_time >= self.up_time:
-        #     self.crawler.engine.close_spider(self, "更新10分钟完成!!")
+        #后续更新:启动10分钟后关闭
+        if time.time() - self.start_time >= self.up_time:
+            self.crawler.engine.close_spider(self, "更新10分钟完成!!")
         item = {}
         url=response.url
         item['url'] = url
