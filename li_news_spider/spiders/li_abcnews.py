@@ -14,14 +14,14 @@ class AbcNews_Spider(CrawlSpider):
                   'https://abcnews.go.com/Lifestyle', 'https://abcnews.go.com/Health', 'https://abcnews.go.com/VR', 'https://abcnews.go.com/Sports']
     page = 0
     # 更新设置--------------------------------------------------
-    # start_time = time.time()
-    # up_time = 600  # 更新 秒
-    # custom_settings = {
-    #     # 设置爬取算法模式
-    #     'SCHEDULER_DISK_QUEUE': 'scrapy.squeues.PickleFifoDiskQueue',
-    #     'SCHEDULER_MEMORY_QUEUE': 'scrapy.squeues.FifoMemoryQueue',
-    #     'DEPTH_PRIORITY': 1,  # 0表示深度优先,1表示广度优先
-    #     'DEPTH_LIMIT': 5}  # 最大深度值
+    start_time = time.time()
+    up_time = 600  # 更新 秒
+    custom_settings = {
+        # 设置爬取算法模式
+        'SCHEDULER_DISK_QUEUE': 'scrapy.squeues.PickleFifoDiskQueue',
+        'SCHEDULER_MEMORY_QUEUE': 'scrapy.squeues.FifoMemoryQueue',
+        'DEPTH_PRIORITY': 1,  # 0表示深度优先,1表示广度优先
+        'DEPTH_LIMIT': 5}  # 最大深度值
     #-默认入库,入FTP,入分类设置----------------------------------
     table_name = 'Data_Content_671'   #mysql表名 671
     ftp_name = ''                 #FTP文件名,只要名为:test则为测试!
@@ -43,7 +43,7 @@ class AbcNews_Spider(CrawlSpider):
         passwd='itfkgsbxf3nyw6s1',
         charset='utf8')
     cur = conn.cursor()
-    #ftp---------------------------------------------
+    #ftp------------------------------------------------------
     ftp = FTP()
     ftp.connect('154.86.175.226', 21)
     ftp.login(user='img', passwd='W2BpLPnyXbdmWCNd')
@@ -52,8 +52,8 @@ class AbcNews_Spider(CrawlSpider):
 
     def parse_item(self, response):
         # 后续更新:启动10分钟后关闭
-        # if time.time() - self.start_time >= self.up_time:
-        #     self.crawler.engine.close_spider(self, "更新10分钟完成!!")
+        if time.time() - self.start_time >= self.up_time:
+            self.crawler.engine.close_spider(self, "更新10分钟完成!!")
         item = {}
         url = response.url
         item['url'] = url
