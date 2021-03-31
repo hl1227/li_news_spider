@@ -5,29 +5,29 @@ from ftplib import FTP
 from io import BytesIO
 import time,pymysql,scrapy,hashlib
 
-class Greatist_Spider(CrawlSpider):
-    name = 'wellandgood'
-    allowed_domains = ['wellandgood.com']
-    start_urls = ['https://www.wellandgood.com/']
+class Travelandleisure_Spider(CrawlSpider):
+    name = 'travelandleisure'
+    allowed_domains = ['travelandleisure.com']
+    start_urls = ['https://www.travelandleisure.com/']
     page = 0
     #更新设置--------------------------------------------------
-    start_time = time.time()
-    up_time = 600  # 更新 秒
-    custom_settings = {
-                       #设置爬取算法模式
-                       'SCHEDULER_DISK_QUEUE' : 'scrapy.squeues.PickleFifoDiskQueue',
-                       'SCHEDULER_MEMORY_QUEUE' : 'scrapy.squeues.FifoMemoryQueue',
-                       'DEPTH_PRIORITY': 1, #0表示深度优先,1表示广度优先
-                       'DEPTH_LIMIT' : 5    #最大深度值
-                        }
+    # start_time = time.time()
+    # up_time = 600  # 更新 秒
+    # custom_settings = {
+    #                    #设置爬取算法模式
+    #                    'SCHEDULER_DISK_QUEUE' : 'scrapy.squeues.PickleFifoDiskQueue',
+    #                    'SCHEDULER_MEMORY_QUEUE' : 'scrapy.squeues.FifoMemoryQueue',
+    #                    'DEPTH_PRIORITY': 1, #0表示深度优先,1表示广度优先
+    #                    'DEPTH_LIMIT' : 5, #最大深度值
+    #                 }
     #-默认入库,入FTP,入分类设置,更新时长---------------------------
     table_name = 'Data_Content_673'   #mysql表名
     ftp_name = ''                 #FTP文件名,只要名为:test则为测试!
     default_category='other'          #默认分类
     default_img = 'life.jpg'  # 默认图片
     #--------------------------------------------------------
-    rules = (Rule(LinkExtractor(allow=r'https://www.wellandgood.com/.*-.*-.*/'), callback='parse_item', follow=True),
-             Rule(LinkExtractor(allow=r'https://www.wellandgood.com/.*/'),follow=True),)
+    rules = (Rule(LinkExtractor(allow=r'https://www.travelandleisure.com/(?!account).*/.*-.*-.*'), callback='parse_item', follow=True),
+             Rule(LinkExtractor(allow=r'https://www.travelandleisure.com/(?!account).*'),follow=True),)
     # mysql------------------------------------------
     conn = pymysql.Connect(
         host='154.212.112.247',
@@ -47,23 +47,21 @@ class Greatist_Spider(CrawlSpider):
 
     def parse_item(self, response):
         # 后续更新:启动10分钟后关闭
-        if time.time() - self.start_time >= self.up_time:
-            self.crawler.engine.close_spider(self, "更新10分钟完成!!")
+        # if time.time() - self.start_time >= self.up_time:
+        #     self.crawler.engine.close_spider(self, "更新10分钟完成!!")
+        url = response.url
         item = {}
-        url=response.url
         item['url'] = url
-        # # 标题
+        # 标题
         try:
-            item['title'] = response.xpath("//meta[@name='twitter:title']/@content").extract_first()
+            item['title'] = response.xpath("//meta[@property='og:title']/@content").extract_first()
             if item['title'] == None:
-                item['title'] = response.xpath("//h1//text()").extract_first().strip()
+                item['title'] = ''
         except Exception:
             item['title'] = ''
         # 关键字
         try:
-            item['keyword'] = response.xpath("//meta[@name='keywords']/@content").extract_first()
-            if item['keyword'] ==None or len(item['keyword'])<1:
-                item['keyword'] = item['title'].replace(' ',',')
+            item['keyword'] = 'Travel,Leisure'
         except Exception:
             item['keyword'] = item['title'].replace(' ',',')
         # 摘要
@@ -78,37 +76,37 @@ class Greatist_Spider(CrawlSpider):
         # 图片
         try:
             img_url=response.xpath("//meta[@name='twitter:image']/@content").extract_first()
-            if 'default' in img_url or img_url == None:
+            if 'undefined' in img_url or img_url == None:
                 item['img_src'] = 'https://www.baidu.com/'
             else:item['img_src']=img_url
         except Exception:
             item['img_src'] = 'https://www.baidu.com/'
         # 正文
         try:
-            item['content'] =''.join(response.xpath("//div[@class='editor-content']/div[@class='drop-cap text-big text-gray']//text() | //div[@class='editor-content']/p//text()").extract()).replace('.','.\n')
-            if item['content'] == None or len(item['content']) < 1:
-                item['content'] = ''.join(response.xpath("//main[@class='page__main']//text()").extract()).replace('.', '.\n')
+            item['content'] ='\n'.join(response.xpath("//div[@class='paragraph']/p//text() | //div[contains(@class,'glide-slide-desc')]//text()").extract()).strip()
         except Exception:
             item['content'] = ''
+
         # 作者
         try:
-            item['author'] = response.xpath("//meta[@name='twitter:data1']/@content").extract_first()
+            item['author'] = response.xpath("//*[@class='bold author-name']/text()").extract_first().strip()
             if item['author'] == None:
                 item['author'] = 'Guide to life in India'
         except Exception:
             item['author'] = 'Guide to life in India'
         # 发行时间
         try:
-            item['release_time'] = response.xpath("//meta[@property='article:published_time']/@content").extract_first().strip()[0:10]
+            item['release_time'] = response.xpath("//div[@class='timestamp published-date padding-12-left']/text()").extract_first().strip()
         except Exception:
             item['release_time'] = time.ctime(time.time()-86400)
         #分类
         try:
-            item['category']='Life Health'
+            item['category']='Travel'
         except Exception:
-            item['category']='Life Health'
+            item['category']='Travel'
         # 来源
-        item['be_from'] ='www.wellandgood.com'
+        item['be_from'] ='www.travelandleisure.com'
+
         #生成器返回:
         if len(item['title']) >=1 and len(item['content']) >= 50 and item['category'] != '':
             #-----------入库去重--------------------------------------
@@ -123,7 +121,7 @@ class Greatist_Spider(CrawlSpider):
                 #     yield scrapy.Request(url='https://www.baidu.com/', callback=self.img_parse, meta={'item': item},dont_filter=True)
             else:print('**数据重复:',item['url'])
         else:
-            print('##数据不匹配--状态码:',response.status,'标题长度:',len(item['title']),'文本长度:',len(item['content']),'category:',item['category'],response.url)
+            print('##数据不匹配:标题长度:',len(item['title']),'文本长度:',len(item['content']),'category:',item['category'],response.url)
 
     def img_parse(self,response):
         item = response.meta['item']
@@ -190,5 +188,5 @@ class Greatist_Spider(CrawlSpider):
         self.conn.close()
         self.ftp.close()
         ##self.crawler.engine.close_spider(self, "关闭spider")
-        #scrapy crawl wellandgood
+        #scrapy crawl travelandleisure
 
