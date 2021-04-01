@@ -27,22 +27,24 @@ class Businessinsider_Spider(CrawlSpider):
     rules = (Rule(LinkExtractor(allow=r'https://www.businessinsider.in/.*/articleshow/\d+.cms'),callback='parse_item', follow=True),
              Rule(LinkExtractor(allow=r'https://www.businessinsider.in/.*'), follow=False),
              Rule(LinkExtractor(allow=r'https://www.businessinsider.in/latest.*'), follow=True))
-    # mysql------------------------------------------
-    conn = pymysql.Connect(
-        host='154.212.112.247',
-        port=13006,
-        # 数据库名：
-        db='test',
-        user="root",
-        passwd='itfkgsbxf3nyw6s1',
-        charset='utf8')
-    cur = conn.cursor()
-    # ftp---------------------------------------------
-    ftp = FTP()
-    ftp.connect('154.86.175.226', 21)
-    ftp.login(user='img', passwd='W2BpLPnyXbdmWCNd')
-    ftp.set_pasv(False)
-    ftp.encoding = 'utf-8'
+    def __init__(self):
+        super(Businessinsider_Spider, self).__init__(name='businessinsider')
+        # mysql------------------------------------------
+        self.conn = pymysql.Connect(
+            host='154.212.112.247',
+            port=13006,
+            # 数据库名：
+            db='test',
+            user="root",
+            passwd='itfkgsbxf3nyw6s1',
+            charset='utf8')
+        self.cur = self.conn.cursor()
+        # ftp---------------------------------------------
+        self.ftp = FTP()
+        self.ftp.connect('154.86.175.226', 21)
+        self.ftp.login(user='img', passwd='W2BpLPnyXbdmWCNd')
+        self.ftp.set_pasv(False)
+        self.ftp.encoding = 'utf-8'
     def parse_item(self, response):
         item = LiNewsSpiderItem()
         url=response.url

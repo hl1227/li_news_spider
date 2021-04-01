@@ -26,16 +26,19 @@ class Businesstoday_Spider(CrawlSpider):
              #Rule(LinkExtractor(allow=r'https://www.businesstoday.in/latest/.*'), follow=True),
              Rule(LinkExtractor(allow=r'https://www.businesstoday.in/.*'),follow=True)
              )
-    # mysql------------------------------------------
-    conn = pymysql.Connect(
-        host='154.212.112.247',
-        port=13006,
-        # 数据库名：
-        db='test',
-        user="root",
-        passwd='itfkgsbxf3nyw6s1',
-        charset='utf8mb4')
-    cur = conn.cursor()
+    def __init__(self):
+        super(Businesstoday_Spider, self).__init__(name='businesstoday')
+        # mysql------------------------------------------
+        self.conn = pymysql.Connect(
+            host='154.212.112.247',
+            port=13006,
+            # 数据库名：
+            db='test',
+            user="root",
+            passwd='itfkgsbxf3nyw6s1',
+            charset='utf8')
+        self.cur = self.conn.cursor()
+
 
     def parse_item(self, response):
         #后续更新:启动10分钟后关闭

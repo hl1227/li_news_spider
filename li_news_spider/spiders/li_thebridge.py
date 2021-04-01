@@ -27,22 +27,25 @@ class Thebridge_Spider(CrawlSpider):
              Rule(LinkExtractor(allow=r'https://thebridge.in/latest/.*'), follow=True),
              Rule(LinkExtractor(allow=r'https://thebridge.in/.*'),follow=False)
              )
-    # mysql------------------------------------------
-    conn = pymysql.Connect(
-        host='154.212.112.247',
-        port=13006,
-        # 数据库名：
-        db='test',
-        user="root",
-        passwd='itfkgsbxf3nyw6s1',
-        charset='utf8mb4')
-    cur = conn.cursor()
-    # ftp---------------------------------------------
-    ftp = FTP()
-    ftp.connect('154.86.175.226', 21)
-    ftp.login(user='img', passwd='W2BpLPnyXbdmWCNd')
-    ftp.set_pasv(False)
-    ftp.encoding = 'utf-8'
+    def __init__(self):
+        super(Thebridge_Spider, self).__init__(name='thebridge')
+        # mysql------------------------------------------
+        self.conn = pymysql.Connect(
+            host='154.212.112.247',
+            port=13006,
+            # 数据库名：
+            db='test',
+            user="root",
+            passwd='itfkgsbxf3nyw6s1',
+            charset='utf8')
+        self.cur = self.conn.cursor()
+        # ftp---------------------------------------------
+        self.ftp = FTP()
+        self.ftp.connect('154.86.175.226', 21)
+        self.ftp.login(user='img', passwd='W2BpLPnyXbdmWCNd')
+        self.ftp.set_pasv(False)
+        self.ftp.encoding = 'utf-8'
+
     def parse_item(self, response):
         # 后续更新:启动10分钟后关闭
         if time.time() - self.start_time >= self.up_time:
